@@ -5,175 +5,235 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HIS Upload</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f0f4f8;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-}
-.card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.10);
-    padding: 32px 24px;
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-}
-.logo { font-size: 48px; margin-bottom: 8px; }
-h1 { color: #1a5fa8; font-size: 22px; margin-bottom: 4px; }
-.sub { color: #888; font-size: 13px; margin-bottom: 24px; }
-.preview-wrap {
-    width: 100%; aspect-ratio: 4/3;
-    background: #f0f4f8;
-    border-radius: 12px;
-    border: 2px dashed #c0cfe0;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-    margin-bottom: 16px;
-    cursor: pointer;
-    transition: border-color .2s;
-}
-.preview-wrap:hover { border-color: #1a5fa8; }
-.preview-wrap img { width: 100%; height: 100%; object-fit: contain; }
-.preview-placeholder { color: #aaa; font-size: 14px; }
-.preview-placeholder span { font-size: 36px; display: block; margin-bottom: 6px; }
-input[type=file] { display: none; }
-.btn {
-    display: block; width: 100%;
-    padding: 15px;
-    margin: 8px 0;
-    border: none; border-radius: 10px;
-    font-size: 16px; font-weight: 600;
-    cursor: pointer;
-    transition: opacity .15s, transform .1s;
-}
-.btn:active { transform: scale(.98); }
-.btn-blue  { background: #1a5fa8; color: #fff; }
-.btn-green { background: #1e8a4a; color: #fff; }
-.btn-green:disabled { opacity: .35; cursor: not-allowed; transform: none; }
-#fn {
-    font-size: 12px; color: #666;
-    margin: 4px 0 12px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-#st {
-    margin-top: 16px; padding: 14px;
-    border-radius: 10px; font-size: 14px;
-    display: none; line-height: 1.5;
-}
-.st-loading { background: #fff8e1; color: #7a5700; }
-.st-ok      { background: #e6f4ea; color: #1a5c2a; }
-.st-err     { background: #fdecea; color: #a32020; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.10);padding:28px 20px;width:100%;max-width:420px}
+.logo{font-size:40px;text-align:center;margin-bottom:6px}
+h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
+.sub{color:#888;font-size:12px;text-align:center;margin-bottom:20px}
+
+/* Hai nút chọn nguồn */
+.src-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.src-btn{border:2px solid #d0daea;border-radius:12px;padding:14px 8px;background:#f8fafc;cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.src-btn:active{transform:scale(.97)}
+.src-btn.active{border-color:#1a5fa8;background:#eef4ff}
+.src-btn .icon{font-size:30px;display:block;margin-bottom:4px}
+.src-btn .label{font-size:13px;font-weight:600;color:#334}
+.src-btn .hint{font-size:10px;color:#888;margin-top:2px}
+
+/* Preview */
+.preview-wrap{width:100%;aspect-ratio:4/3;background:#f0f4f8;border-radius:12px;border:2px dashed #c0cfe0;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px}
+.preview-wrap video,.preview-wrap img{width:100%;height:100%;object-fit:contain}
+.ph{color:#aaa;font-size:13px;text-align:center}
+.ph span{font-size:32px;display:block;margin-bottom:6px}
+
+/* Nút */
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;margin-bottom:8px}
+.btn:last-child{margin-bottom:0}
+.btn:active{transform:scale(.98)}
+.btn-blue{background:#1a5fa8;color:#fff}
+.btn-capture{background:#e8f0fe;color:#1a5fa8;border:2px solid #1a5fa8}
+.btn-green{background:#1e8a4a;color:#fff}
+.btn-green:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.cam-row{display:none;gap:8px;margin-bottom:8px}
+.cam-row.show{display:flex}
+.cam-row .btn{margin-bottom:0;flex:1}
+
+#fn{font-size:11px;color:#666;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;min-height:16px}
+#st{padding:13px;border-radius:10px;font-size:14px;display:none;margin-top:10px;line-height:1.5;text-align:center}
+.st-loading{background:#fff8e1;color:#7a5700}
+.st-ok{background:#e6f4ea;color:#1a5c2a}
+.st-err{background:#fdecea;color:#a32020}
 </style>
 </head>
 <body>
 <div class="card">
-    <div class="logo">🏥</div>
-    <h1>HIS Upload</h1>
-    <p class="sub">Tải ảnh lên hệ thống VNPT HIS</p>
+  <div class="logo">🏥</div>
+  <h1>HIS Upload</h1>
+  <p class="sub">Tải ảnh lên hệ thống VNPT HIS</p>
 
-    <div class="preview-wrap" id="previewWrap" onclick="document.getElementById('fi').click()">
-        <div class="preview-placeholder" id="ph">
-            <span>📷</span>Nhấn để chọn / chụp ảnh
-        </div>
-        <img id="previewImg" style="display:none">
+  <div class="src-btns">
+    <div class="src-btn" id="btnSrcGallery" onclick="selectSource('gallery')">
+      <span class="icon">🖼️</span>
+      <div class="label">Thư viện</div>
+      <div class="hint">Chọn ảnh có sẵn</div>
     </div>
+    <div class="src-btn" id="btnSrcCamera" onclick="selectSource('camera')">
+      <span class="icon">📷</span>
+      <div class="label">Chụp ảnh</div>
+      <div class="hint">Không lưu vào máy</div>
+    </div>
+  </div>
 
-    <input id="fi" type="file" accept="image/*" capture="environment">
-    <p id="fn">Chưa chọn ảnh</p>
+  <div class="preview-wrap">
+    <div class="ph" id="ph"><span>☝️</span>Chọn nguồn ảnh bên trên</div>
+    <video id="camVideo" autoplay playsinline style="display:none"></video>
+    <img id="previewImg" style="display:none">
+  </div>
 
-    <button class="btn btn-blue"  onclick="document.getElementById('fi').click()">Chọn / Chụp ảnh</button>
-    <button class="btn btn-green" id="bu" onclick="go()" disabled>⬆️ Upload lên HIS</button>
+  <input id="fi" type="file" accept="image/*" style="display:none">
+  <p id="fn"></p>
 
-    <div id="st"></div>
+  <div id="galleryControls" style="display:none">
+    <button class="btn btn-blue" onclick="document.getElementById('fi').click()">Chọn ảnh từ thư viện</button>
+  </div>
+
+  <div class="cam-row" id="camControls">
+    <button class="btn btn-capture" id="btnCapture" onclick="capturePhoto()">📸 Chụp</button>
+    <button class="btn btn-blue"    id="btnRetake"  onclick="startCamera()" style="display:none">🔄 Chụp lại</button>
+  </div>
+
+  <button class="btn btn-green" id="bu" onclick="go()" disabled>⬆️ Upload lên HIS</button>
+  <div id="st"></div>
 </div>
 
 <script>
 var sessionUrl = null;
 var file       = null;
+var camStream  = null;
+var source     = null;
 
-/* ── Decode session URL từ ?s= (base64url) ── */
-(function init() {
-    var s = new URLSearchParams(location.search).get('s');
-    if (!s) {
-        showErr('❌ Thiếu tham số session. Hãy quét lại mã QR.');
-        return;
-    }
-    /* base64url → base64 chuẩn */
-    s = s.replace(/-/g, '+').replace(/_/g, '/');
-    while (s.length % 4) s += '=';
-    try {
-        sessionUrl = atob(s);
-    } catch (e) {
-        showErr('❌ Session URL không hợp lệ. Hãy quét lại mã QR.');
-    }
+/* Decode session URL từ ?s= (base64url) */
+(function () {
+  var s = new URLSearchParams(location.search).get('s');
+  if (!s) { showErr('❌ Thiếu tham số session. Hãy quét lại mã QR.'); return; }
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  try { sessionUrl = atob(s); }
+  catch (e) { showErr('❌ Session URL không hợp lệ. Hãy quét lại mã QR.'); }
 })();
 
-/* ── Chọn ảnh ── */
-document.getElementById('fi').onchange = function () {
-    file = this.files[0];
-    if (!file) return;
-    document.getElementById('bu').disabled = false;
-    document.getElementById('fn').textContent = file.name;
+/* Chọn nguồn */
+function selectSource(src) {
+  source = src;
+  stopCamera();
+  file = null;
+  document.getElementById('bu').disabled = true;
+  document.getElementById('fn').textContent = '';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('ph').style.display = '';
+  document.getElementById('st').style.display = 'none';
+  document.getElementById('btnRetake').style.display = 'none';
+  document.getElementById('btnCapture').style.display = '';
 
-    /* Preview */
-    var reader = new FileReader();
-    reader.onload = function (e) {
-        var img = document.getElementById('previewImg');
-        img.src = e.target.result;
-        img.style.display = 'block';
-        document.getElementById('ph').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+  document.getElementById('btnSrcGallery').classList.toggle('active', src === 'gallery');
+  document.getElementById('btnSrcCamera').classList.toggle('active', src === 'camera');
+  document.getElementById('galleryControls').style.display = src === 'gallery' ? '' : 'none';
+  document.getElementById('camControls').className = 'cam-row' + (src === 'camera' ? ' show' : '');
+  document.getElementById('camVideo').style.display = 'none';
+
+  if (src === 'camera') startCamera();
+  else document.getElementById('fi').click();
+}
+
+/* Gallery */
+document.getElementById('fi').onchange = function () {
+  var f = this.files[0];
+  if (!f) return;
+  setFile(f, f.name);
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var img = document.getElementById('previewImg');
+    img.src = e.target.result;
+    img.style.display = '';
+    document.getElementById('ph').style.display = 'none';
+  };
+  reader.readAsDataURL(f);
 };
 
-/* ── Upload ── */
+/* Mở camera */
+async function startCamera() {
+  stopCamera();
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('ph').style.display = '';
+  document.getElementById('btnCapture').style.display = '';
+  document.getElementById('btnRetake').style.display = 'none';
+  file = null;
+  document.getElementById('bu').disabled = true;
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    var vid = document.getElementById('camVideo');
+    vid.srcObject = camStream;
+    vid.style.display = '';
+    document.getElementById('ph').style.display = 'none';
+    document.getElementById('fn').textContent = '📹 Camera đang mở...';
+  } catch (e) {
+    showErr('❌ Không mở được camera: ' + (e.message || e));
+  }
+}
+
+function stopCamera() {
+  if (camStream) { camStream.getTracks().forEach(function (t) { t.stop(); }); camStream = null; }
+  var vid = document.getElementById('camVideo');
+  vid.srcObject = null;
+  vid.style.display = 'none';
+}
+
+/* Chụp — lấy frame từ video, không lưu vào thư viện */
+function capturePhoto() {
+  var vid = document.getElementById('camVideo');
+  if (!vid.videoWidth) { showErr('❌ Camera chưa sẵn sàng, thử lại.'); return; }
+  var canvas = document.createElement('canvas');
+  canvas.width  = vid.videoWidth;
+  canvas.height = vid.videoHeight;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  stopCamera();
+  canvas.toBlob(function (blob) {
+    var name = 'anh_chup_' + Date.now() + '.jpg';
+    setFile(blob, name);
+    var img = document.getElementById('previewImg');
+    img.src = URL.createObjectURL(blob);
+    img.style.display = '';
+    document.getElementById('ph').style.display = 'none';
+    document.getElementById('btnCapture').style.display = 'none';
+    document.getElementById('btnRetake').style.display = '';
+  }, 'image/jpeg', 0.92);
+}
+
+function setFile(blob, name) {
+  file = blob;
+  document.getElementById('fn').textContent = '✅ ' + name;
+  document.getElementById('bu').disabled = false;
+}
+
+/* Upload */
 async function go() {
-    if (!file || !sessionUrl) return;
-    var st  = document.getElementById('st');
-    var bu  = document.getElementById('bu');
-    st.className    = 'st-loading';
-    st.style.display = 'block';
-    st.textContent  = '⏳ Đang upload…';
-    bu.disabled     = true;
-
-    try {
-        var r = await fetch(sessionUrl, {
-            method : 'PUT',
-            headers: {
-                'Content-Length': file.size,
-                'Content-Range' : 'bytes 0-' + (file.size - 1) + '/' + file.size,
-                'Content-Type'  : file.type || 'image/jpeg',
-            },
-            body: file,
-        });
-
-        if (r.ok || r.status === 201) {
-            st.className   = 'st-ok';
-            st.textContent = '✅ Upload thành công! Quay lại máy tính để xem ảnh.';
-        } else {
-            st.className   = 'st-err';
-            st.textContent = '❌ Lỗi HTTP ' + r.status + '. Hãy thử lại hoặc quét mã QR mới.';
-            bu.disabled    = false;
-        }
-    } catch (e) {
-        st.className   = 'st-err';
-        st.textContent = '❌ ' + (e.message || e);
-        bu.disabled    = false;
+  if (!file || !sessionUrl) return;
+  var st = document.getElementById('st');
+  var bu = document.getElementById('bu');
+  st.className = 'st-loading'; st.style.display = 'block';
+  st.textContent = '⏳ Đang upload…'; bu.disabled = true;
+  try {
+    var r = await fetch(sessionUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Length': file.size,
+        'Content-Range' : 'bytes 0-' + (file.size - 1) + '/' + file.size,
+        'Content-Type'  : file.type || 'image/jpeg'
+      },
+      body: file
+    });
+    if (r.ok || r.status === 201) {
+      st.className = 'st-ok';
+      st.textContent = '✅ Upload thành công! Quay lại máy tính để xem ảnh.';
+    } else {
+      st.className = 'st-err';
+      st.textContent = '❌ Lỗi HTTP ' + r.status + '. Thử lại hoặc quét mã QR mới.';
+      bu.disabled = false;
     }
+  } catch (e) {
+    st.className = 'st-err';
+    st.textContent = '❌ ' + (e.message || e);
+    bu.disabled = false;
+  }
 }
 
 function showErr(msg) {
-    var st = document.getElementById('st');
-    st.className    = 'st-err';
-    st.style.display = 'block';
-    st.textContent  = msg;
-    document.getElementById('bu').disabled = true;
+  var st = document.getElementById('st');
+  st.className = 'st-err'; st.style.display = 'block'; st.textContent = msg;
+  document.getElementById('bu').disabled = true;
 }
 </script>
 </body>
