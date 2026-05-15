@@ -12,7 +12,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
 .sub{color:#888;font-size:12px;text-align:center;margin-bottom:20px}
 
-/* Hai nút chọn nguồn */
 .src-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .src-btn{border:2px solid #d0daea;border-radius:12px;padding:14px 8px;background:#f8fafc;cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .src-btn:active{transform:scale(.97)}
@@ -21,13 +20,15 @@ h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
 .src-btn .label{font-size:13px;font-weight:600;color:#334}
 .src-btn .hint{font-size:10px;color:#888;margin-top:2px}
 
-/* Preview */
-.preview-wrap{width:100%;aspect-ratio:4/3;background:#f0f4f8;border-radius:12px;border:2px dashed #c0cfe0;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px}
+.preview-wrap{width:100%;aspect-ratio:4/3;background:#f0f4f8;border-radius:12px;border:2px dashed #c0cfe0;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;position:relative}
 .preview-wrap video,.preview-wrap img{width:100%;height:100%;object-fit:contain}
 .ph{color:#aaa;font-size:13px;text-align:center}
 .ph span{font-size:32px;display:block;margin-bottom:6px}
 
-/* Nút */
+/* Nút xóa ảnh — nằm góc trên phải preview */
+#btnDelete{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:10}
+#btnDelete.show{display:flex}
+
 .btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;margin-bottom:8px}
 .btn:last-child{margin-bottom:0}
 .btn:active{transform:scale(.98)}
@@ -69,6 +70,7 @@ h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
     <div class="ph" id="ph"><span>☝️</span>Chọn nguồn ảnh bên trên</div>
     <video id="camVideo" autoplay playsinline style="display:none"></video>
     <img id="previewImg" style="display:none">
+    <button id="btnDelete" title="Xóa ảnh" onclick="clearFile()">🗑</button>
   </div>
 
   <input id="fi" type="file" accept="image/*" style="display:none">
@@ -93,7 +95,7 @@ var file       = null;
 var camStream  = null;
 var source     = null;
 
-/* Decode session URL từ ?s= (base64url) */
+/* Decode session URL */
 (function () {
   var s = new URLSearchParams(location.search).get('s');
   if (!s) { showErr('❌ Thiếu tham số session. Hãy quét lại mã QR.'); return; }
@@ -106,24 +108,31 @@ var source     = null;
 /* Chọn nguồn */
 function selectSource(src) {
   source = src;
+  clearFile();
   stopCamera();
-  file = null;
-  document.getElementById('bu').disabled = true;
-  document.getElementById('fn').textContent = '';
-  document.getElementById('previewImg').style.display = 'none';
-  document.getElementById('ph').style.display = '';
   document.getElementById('st').style.display = 'none';
-  document.getElementById('btnRetake').style.display = 'none';
-  document.getElementById('btnCapture').style.display = '';
-
   document.getElementById('btnSrcGallery').classList.toggle('active', src === 'gallery');
   document.getElementById('btnSrcCamera').classList.toggle('active', src === 'camera');
   document.getElementById('galleryControls').style.display = src === 'gallery' ? '' : 'none';
   document.getElementById('camControls').className = 'cam-row' + (src === 'camera' ? ' show' : '');
-  document.getElementById('camVideo').style.display = 'none';
-
   if (src === 'camera') startCamera();
   else document.getElementById('fi').click();
+}
+
+/* Xóa ảnh đã chọn/chụp — quay về trạng thái chờ */
+function clearFile() {
+  file = null;
+  document.getElementById('fi').value = '';
+  document.getElementById('bu').disabled = true;
+  document.getElementById('fn').textContent = '';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('previewImg').src = '';
+  document.getElementById('ph').style.display = '';
+  document.getElementById('btnDelete').classList.remove('show');
+  document.getElementById('btnRetake').style.display = 'none';
+  document.getElementById('btnCapture').style.display = '';
+  // Nếu đang ở chế độ camera thì mở lại camera
+  if (source === 'camera') startCamera();
 }
 
 /* Gallery */
@@ -133,10 +142,7 @@ document.getElementById('fi').onchange = function () {
   setFile(f, f.name);
   var reader = new FileReader();
   reader.onload = function (e) {
-    var img = document.getElementById('previewImg');
-    img.src = e.target.result;
-    img.style.display = '';
-    document.getElementById('ph').style.display = 'none';
+    showPreviewImg(e.target.result);
   };
   reader.readAsDataURL(f);
 };
@@ -148,6 +154,7 @@ async function startCamera() {
   document.getElementById('ph').style.display = '';
   document.getElementById('btnCapture').style.display = '';
   document.getElementById('btnRetake').style.display = 'none';
+  document.getElementById('btnDelete').classList.remove('show');
   file = null;
   document.getElementById('bu').disabled = true;
   try {
@@ -171,7 +178,7 @@ function stopCamera() {
   vid.style.display = 'none';
 }
 
-/* Chụp — lấy frame từ video, không lưu vào thư viện */
+/* Chụp — không lưu vào thư viện */
 function capturePhoto() {
   var vid = document.getElementById('camVideo');
   if (!vid.videoWidth) { showErr('❌ Camera chưa sẵn sàng, thử lại.'); return; }
@@ -181,15 +188,19 @@ function capturePhoto() {
   canvas.getContext('2d').drawImage(vid, 0, 0);
   stopCamera();
   canvas.toBlob(function (blob) {
-    var name = 'anh_chup_' + Date.now() + '.jpg';
-    setFile(blob, name);
-    var img = document.getElementById('previewImg');
-    img.src = URL.createObjectURL(blob);
-    img.style.display = '';
-    document.getElementById('ph').style.display = 'none';
+    setFile(blob, 'anh_chup_' + Date.now() + '.jpg');
+    showPreviewImg(URL.createObjectURL(blob));
     document.getElementById('btnCapture').style.display = 'none';
     document.getElementById('btnRetake').style.display = '';
   }, 'image/jpeg', 0.92);
+}
+
+function showPreviewImg(src) {
+  var img = document.getElementById('previewImg');
+  img.src = src;
+  img.style.display = '';
+  document.getElementById('ph').style.display = 'none';
+  document.getElementById('btnDelete').classList.add('show');
 }
 
 function setFile(blob, name) {
