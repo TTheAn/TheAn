@@ -12,20 +12,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
 .sub{color:#888;font-size:12px;text-align:center;margin-bottom:20px}
 
-.src-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.src-btn{border:2px solid #d0daea;border-radius:12px;padding:14px 8px;background:#f8fafc;cursor:pointer;text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
-.src-btn:active{transform:scale(.97)}
-.src-btn.active{border-color:#1a5fa8;background:#eef4ff}
-.src-btn .icon{font-size:30px;display:block;margin-bottom:4px}
-.src-btn .label{font-size:13px;font-weight:600;color:#334}
-.src-btn .hint{font-size:10px;color:#888;margin-top:2px}
-
 .preview-wrap{width:100%;aspect-ratio:4/3;background:#f0f4f8;border-radius:12px;border:2px dashed #c0cfe0;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;position:relative}
 .preview-wrap video,.preview-wrap img{width:100%;height:100%;object-fit:contain}
 .ph{color:#aaa;font-size:13px;text-align:center}
 .ph span{font-size:32px;display:block;margin-bottom:6px}
 
-/* Nút xóa ảnh — nằm góc trên phải preview */
 #btnDelete{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:10}
 #btnDelete.show{display:flex}
 
@@ -33,18 +24,19 @@ h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
 .btn:last-child{margin-bottom:0}
 .btn:active{transform:scale(.98)}
 .btn-blue{background:#1a5fa8;color:#fff}
-.btn-capture{background:#e8f0fe;color:#1a5fa8;border:2px solid #1a5fa8}
+.btn-gray{background:#e8eef5;color:#1a5fa8;border:2px solid #1a5fa8}
 .btn-green{background:#1e8a4a;color:#fff}
 .btn-green:disabled{opacity:.35;cursor:not-allowed;transform:none}
-.cam-row{display:none;gap:8px;margin-bottom:8px}
-.cam-row.show{display:flex}
-.cam-row .btn{margin-bottom:0;flex:1}
 
 #fn{font-size:11px;color:#666;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;min-height:16px}
 #st{padding:13px;border-radius:10px;font-size:14px;display:none;margin-top:10px;line-height:1.5;text-align:center}
 .st-loading{background:#fff8e1;color:#7a5700}
 .st-ok{background:#e6f4ea;color:#1a5c2a}
 .st-err{background:#fdecea;color:#a32020}
+
+#camControls{display:none;gap:8px;margin-bottom:8px}
+#camControls.show{display:flex}
+#camControls .btn{margin-bottom:0;flex:1}
 </style>
 </head>
 <body>
@@ -53,21 +45,8 @@ h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
   <h1>HIS Upload</h1>
   <p class="sub">Tải ảnh lên hệ thống VNPT HIS</p>
 
-  <div class="src-btns">
-    <div class="src-btn" id="btnSrcGallery" onclick="selectSource('gallery')">
-      <span class="icon">🖼️</span>
-      <div class="label">Thư viện</div>
-      <div class="hint">Chọn ảnh có sẵn</div>
-    </div>
-    <div class="src-btn" id="btnSrcCamera" onclick="selectSource('camera')">
-      <span class="icon">📷</span>
-      <div class="label">Chụp ảnh</div>
-      <div class="hint">Không lưu vào máy</div>
-    </div>
-  </div>
-
   <div class="preview-wrap">
-    <div class="ph" id="ph"><span>☝️</span>Chọn nguồn ảnh bên trên</div>
+    <div class="ph" id="ph"><span>🖼️</span>Xem trước ảnh</div>
     <video id="camVideo" autoplay playsinline style="display:none"></video>
     <img id="previewImg" style="display:none">
     <button id="btnDelete" title="Xóa ảnh" onclick="clearFile()">🗑</button>
@@ -76,13 +55,12 @@ h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
   <input id="fi" type="file" accept="image/*" style="display:none">
   <p id="fn"></p>
 
-  <div id="galleryControls" style="display:none">
-    <button class="btn btn-blue" onclick="document.getElementById('fi').click()">Chọn ảnh từ thư viện</button>
-  </div>
+  <button class="btn btn-blue" onclick="document.getElementById('fi').click()">🖼️ Chọn ảnh từ thư viện</button>
+  <button class="btn btn-gray" onclick="openCamera()">📸 Chụp ảnh (không lưu vào máy)</button>
 
-  <div class="cam-row" id="camControls">
-    <button class="btn btn-capture" id="btnCapture" onclick="capturePhoto()">📸 Chụp</button>
-    <button class="btn btn-blue"    id="btnRetake"  onclick="startCamera()" style="display:none">🔄 Chụp lại</button>
+  <div id="camControls">
+    <button class="btn btn-gray" id="btnCapture" onclick="capturePhoto()">📸 Chụp</button>
+    <button class="btn btn-blue" id="btnRetake" onclick="openCamera()" style="display:none">🔄 Chụp lại</button>
   </div>
 
   <button class="btn btn-green" id="bu" onclick="go()" disabled>⬆️ Upload lên HIS</button>
@@ -93,7 +71,6 @@ h1{color:#1a5fa8;font-size:20px;text-align:center;margin-bottom:2px}
 var sessionUrl = null;
 var file       = null;
 var camStream  = null;
-var source     = null;
 
 /* Decode session URL */
 (function () {
@@ -105,21 +82,7 @@ var source     = null;
   catch (e) { showErr('❌ Session URL không hợp lệ. Hãy quét lại mã QR.'); }
 })();
 
-/* Chọn nguồn */
-function selectSource(src) {
-  source = src;
-  clearFile();
-  stopCamera();
-  document.getElementById('st').style.display = 'none';
-  document.getElementById('btnSrcGallery').classList.toggle('active', src === 'gallery');
-  document.getElementById('btnSrcCamera').classList.toggle('active', src === 'camera');
-  document.getElementById('galleryControls').style.display = src === 'gallery' ? '' : 'none';
-  document.getElementById('camControls').className = 'cam-row' + (src === 'camera' ? ' show' : '');
-  if (src === 'camera') startCamera();
-  else document.getElementById('fi').click();
-}
-
-/* Xóa ảnh đã chọn/chụp — quay về trạng thái chờ */
+/* Xóa ảnh */
 function clearFile() {
   file = null;
   document.getElementById('fi').value = '';
@@ -131,14 +94,16 @@ function clearFile() {
   document.getElementById('btnDelete').classList.remove('show');
   document.getElementById('btnRetake').style.display = 'none';
   document.getElementById('btnCapture').style.display = '';
-  // Nếu đang ở chế độ camera thì mở lại camera
-  if (source === 'camera') startCamera();
+  document.getElementById('camControls').classList.remove('show');
+  stopCamera();
 }
 
-/* Gallery */
+/* Chọn ảnh từ thư viện */
 document.getElementById('fi').onchange = function () {
   var f = this.files[0];
   if (!f) return;
+  stopCamera();
+  document.getElementById('camControls').classList.remove('show');
   setFile(f, f.name);
   var reader = new FileReader();
   reader.onload = function (e) {
@@ -148,13 +113,14 @@ document.getElementById('fi').onchange = function () {
 };
 
 /* Mở camera */
-async function startCamera() {
+async function openCamera() {
   stopCamera();
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('ph').style.display = '';
   document.getElementById('btnCapture').style.display = '';
   document.getElementById('btnRetake').style.display = 'none';
   document.getElementById('btnDelete').classList.remove('show');
+  document.getElementById('camControls').classList.add('show');
   file = null;
   document.getElementById('bu').disabled = true;
   try {
@@ -167,6 +133,7 @@ async function startCamera() {
     document.getElementById('ph').style.display = 'none';
     document.getElementById('fn').textContent = '📹 Camera đang mở...';
   } catch (e) {
+    document.getElementById('camControls').classList.remove('show');
     showErr('❌ Không mở được camera: ' + (e.message || e));
   }
 }
@@ -178,7 +145,7 @@ function stopCamera() {
   vid.style.display = 'none';
 }
 
-/* Chụp — không lưu vào thư viện */
+/* Chụp */
 function capturePhoto() {
   var vid = document.getElementById('camVideo');
   if (!vid.videoWidth) { showErr('❌ Camera chưa sẵn sàng, thử lại.'); return; }
