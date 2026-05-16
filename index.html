@@ -155,11 +155,11 @@ function capturePhoto() {
   canvas.getContext('2d').drawImage(vid, 0, 0);
   stopCamera();
   canvas.toBlob(function (blob) {
-    setFile(blob, 'anh_chup_' + Date.now() + '.jpg');
+    setFile(blob, 'anh_chup_' + Date.now() + '.webp');
     showPreviewImg(URL.createObjectURL(blob));
     document.getElementById('btnCapture').style.display = 'none';
     document.getElementById('btnRetake').style.display = '';
-  }, 'image/jpeg', 0.92);
+  }, 'image/webp', 0.85);
 }
 
 function showPreviewImg(src) {
